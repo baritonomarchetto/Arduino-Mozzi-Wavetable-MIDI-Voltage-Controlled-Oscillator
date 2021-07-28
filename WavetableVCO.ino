@@ -19,7 +19,8 @@
 // Set up the MIDI channel to listen on
 #define MIDI_CHANNEL 1
 
-//Define the number of poentiometers and buttons
+//Define notes priority
+#define HIGHEST //LATEST, LOWEST, HIGHEST
 
 // Create and bind the MIDI interface to the hardware serial port (default)
 MIDI_CREATE_DEFAULT_INSTANCE();
@@ -60,7 +61,7 @@ float globalGainFactor;
 //define the number of potentiometers on the front panel
 #define NUMPOT 4
 
-const int gateOutPin = A6;
+const int gateOutPin = A5;
 //DIGITAL INPUT PINS (do not use analog pins for digital buttons: Mozzi don't like it)
 const int bPin[] = {2,3,4,5};
 boolean bState[NUMBUT];
@@ -69,6 +70,8 @@ int potVal[NUMPOT];
 int analogCV;
 int prevAnalogCV;
 int noteNum;
+boolean firstNote;
+int noteWait = -1;
 int CVscaling;
 int CVperNote100;
 
@@ -128,18 +131,92 @@ aMod0.setFreq(modfreq[0]);
 }*/
 
 void HandleNoteOn(byte channel, byte note, byte velocity) {
-noteNum = note;
 if(voltageControl == true){
   voltageControl = false; //disable Voltage control if MIDI is incoming
 }
 digitalWrite(gateOutPin, HIGH);
-SetFreqs();
+#ifdef LATEST
+  noteNum = note;
+  SetFreqs();
+#endif
+#ifdef LOWEST
+if(firstNote == 0){
+  firstNote = 1;
+  noteNum = note;
+  SetFreqs();
+}
+else{ //next note press
+  if(note < noteNum) { //if the note is lower than previous valid key ...
+    noteWait = noteNum;
+    noteNum = note; //update nouteNum variable
+    SetFreqs();
+  }
+  else { //if the new note is HIGHER than previous valid key...
+    if(/*note < noteWait ||*/ noteWait == -1){//... BUT is LOWER than previous stored key (or no keys have been stored) ... 
+      noteWait = note; //keep track of it
+    }
+  }
+}
+#endif
+#ifdef HIGHEST
+if(firstNote == 0){
+  firstNote = 1;
+  noteNum = note;
+  SetFreqs();
+}
+else{ //next note press
+  if(note > noteNum) { //if the note is HIGHER than previous valid key ...
+    noteWait = noteNum;
+    noteNum = note; //update nouteNum variable
+    SetFreqs();
+  }
+  else { //if the new note is LOWER than previous valid key...
+    if(/*note > noteWait ||*/ noteWait == -1){//... BUT is HIGHER than previous stored key (or no keys have been stored) ... 
+      noteWait = note; //keep track of it
+    }
+  }
+}
+#endif
 }
 
 void HandleNoteOff(byte channel, byte note, byte velocity) {
+#ifdef LATEST
 if(note == noteNum){
   digitalWrite(gateOutPin, LOW);
 }
+#endif
+#ifdef LOWEST
+if(note == noteWait){
+  noteWait = -1; //no notes are waiting
+}
+else if(note == noteNum){// ... or any other rejected key would close the gate ...
+  if (noteWait >=0){ //if a note is waiting
+    noteNum = noteWait; //update note value
+    noteWait = -1; //no notes are waiting
+    SetFreqs(); //...and trigger it
+  }
+  else{// no notes are waiting
+    digitalWrite(gateOutPin, LOW);
+    firstNote = 0;
+  }
+}
+#endif
+#ifdef HIGHEST
+if(note == noteWait){
+  noteWait = -1; //no notes are waiting
+}
+else if(note == noteNum){// ... or any other rejected key would close the gate ...
+  if (noteWait >=0){ //if a note is waiting
+    noteNum = noteWait; //update note value
+    noteWait = -1; //no notes are waiting
+    SetFreqs(); //...and trigger it
+  }
+  else{// no notes are waiting
+    digitalWrite(gateOutPin, LOW);
+    firstNote = 0;
+  }
+}
+#endif
 }
 
 void HandlePitchBend(byte channel, int bend){
@@ -147,7 +224,8 @@ pitchbend = bend>>10;
 }
 
 void setup(){
-pinMode(gateOutPin, OUTPUT); 
+pinMode(gateOutPin, OUTPUT);
+digitalWrite(gateOutPin, LOW);
 for (int a=0; a<NUMBUT; a++){
   pinMode(bPin[a], INPUT_PULLUP);
   bState[a] = digitalRead(bPin[a]);
