@@ -60,7 +60,7 @@ float globalGainFactor;
 //define the number of potentiometers on the front panel
 #define NUMPOT 4
 
-const int gateOutPin = 8;
+const int gateOutPin = A6;
 //DIGITAL INPUT PINS (do not use analog pins for digital buttons: Mozzi don't like it)
 const int bPin[] = {2,3,4,5};
 boolean bState[NUMBUT];
