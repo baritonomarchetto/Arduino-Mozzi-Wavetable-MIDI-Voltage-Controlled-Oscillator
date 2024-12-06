@@ -3,7 +3,8 @@ This repo contains two wavetable oscillators projects, an older one stored in "V
 Here it is a link to an article I wrote about this very first oscillator project (Instructables): https://www.instructables.com/Arduino-Voltage-Controlled-Wavetable-Oscillator/
 
 It is a better idea to refer to the new one, if you ask me :)
-All the new project files are stored in "VERSION_2" folder.
+
+All the new project files are stored in "VERSION_2" folder of this repository
 
 # Dual Wavetable Voltage Controlled Oscillator
 A dual wavetable voltage controlled oscillator eurorack module based on Mozzi library.
