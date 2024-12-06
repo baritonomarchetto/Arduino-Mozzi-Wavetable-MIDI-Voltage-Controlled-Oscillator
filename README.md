@@ -1,2 +1,2 @@
-# Arduino-Mozzi-Wavetable-MIDI-Voltage-Controlled-Oscillator
-A MIDI and voltage controlled wavetable oscillator based on arduino and mozzi lib
+# Dual Wavetable Voltage Controlled Oscillator
+A dual wavetable voltage controlled oscillator based on arduino and mozzi lib
