@@ -1,10 +1,10 @@
 # About this repository
-This repo contains two wavetable oscillators projects, an older one stored in "VERSION_1_(OLD)" folder and a new one. The older one was a PCB-only project still here for the sake of "good ol' memories". It has not been updated for years and I am not planning to update or support it in any way in the future.
-Here it is a link to an article I wrote about this very first oscillator project (Instructables): https://www.instructables.com/Arduino-Voltage-Controlled-Wavetable-Oscillator/
+This repo contains two wavetable oscillators projects, an older one stored in "VERSION_1_(OLD)" folder and a new one stored in "VERSION_2" folder.
 
-The new project has all the features of the first one, and much more. It is a better idea to refer to the new one, if you ask me :)
+The older one was a single-voice, dual oscillators, PCB-only project that still stands because of the fact that has a full-MIDI implementation. It was a starting point for a monophonic synthesizer project in it's first days that has become a 4-voice paraphonic since then. 
+It has not been updated for years and I am not planning to support it in any way in the future. For more info, here is an article I wrote about this very first oscillator project (Instructables): https://www.instructables.com/Arduino-Voltage-Controlled-Wavetable-Oscillator/
 
-All the new project files are stored in "VERSION_2" folder of this repository
+The new project features a lot of improvements with respect to the first one (dual voice, faster microprocessor, full module... more details in the following), but misses the MIDI implementation. Hardware-wise MIDI is there (MIDI-ready) but the code I wrote is only compatible with V/oct pitch control.
 
 # Dual Wavetable Voltage Controlled Oscillator
 A dual wavetable voltage controlled oscillator eurorack module based on Mozzi library.
