@@ -160,6 +160,14 @@ void UpdateEnc(){
               case 1://ENCODER #2
                 Func_Calib(1, 0.10f); //channel, increment
               break;
+              case 2://ENCODER #3
+                //DO NOTHING
+              break;
+              case 3://ENCODER #4
+                Func_WT_Shift(WTABLE_DIM);
+                Serial.print("wavetable number: ");
+                Serial.println(waveIndex[0]/WTABLE_DIM+1);
+              break;
             }
           #else
             switch(r){
@@ -196,6 +204,14 @@ void UpdateEnc(){
               break;
               case 1://ENCODER #2
                 Func_Calib(1, -0.10f); //channel, increment
+              break;
+              case 2://ENCODER #3
+                //DO NOTHING
+              break;
+              case 3://ENCODER #4
+                Func_WT_Shift(-WTABLE_DIM);
+                Serial.print("wavetable number: ");
+                Serial.println(waveIndex[0]/WTABLE_DIM+1);
               break;
             }
           #else
