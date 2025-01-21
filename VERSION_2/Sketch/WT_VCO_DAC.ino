@@ -63,10 +63,10 @@ bool btn_func[BTNS];
 //analog variables
 float CV_data[VOICES];
 float CV_V[VOICES];
-float freq_Voct[VOICES];
+float freq_Voct[OSC_NUM];
 //float freq_fine[VOICES] = {0, 0}; 
 float detn_fctr[VOICES] = {0, 0};
-float freq_TOT[VOICES];
+float freq_TOT[OSC_NUM];
 float gain[OSC_NUM] = {1.0, 1.0, 1.0, 1.0};
 //float base_freq[VOICES] = {BASE_FREQ, BASE_FREQ};
 byte base_MIDI_num = 24;                    // C1 - MIDIXCV base MIDI num
@@ -75,8 +75,8 @@ long aOutVoice[VOICES];
 //float LINEARITY; //linearity factor
 float pitch_corr[VOICES];
 float note_float[VOICES];
-int note_rnd[VOICES];
-int iOct[VOICES]; //voice actual OCTAVE counter
+int note_trnc[VOICES];
+int iOct[OSC_NUM]; //voice actual OCTAVE counter (defined as semitones!! 12*iOct = one full ocate)
 int iFP[VOICES]; //voice fine pitch counter
 
 //MIDI instance
@@ -173,10 +173,11 @@ void UpdateEnc(){
             switch(r){
               case 0://ENCODER #1
                 if(btn_func[r] == 0){
-                  Func_Octave(1); //full octave 
+                  Func_Octave(12, 12); //+1 full octave on both oscillators
                 }
                 else{
-                  Func_FPitch(2); //fine pitch
+                  Func_Octave(0, 12); //+1 full octave on oscillator B
+                  //Func_FPitch(2); //fine pitch (disabled but coded!)
                 }
               break;
               case 1://ENCODER #2
@@ -218,10 +219,11 @@ void UpdateEnc(){
             switch(r){
               case 0://first encoder
                 if(btn_func[r] == 0){
-                  Func_Octave(-2);
+                  Func_Octave(-12, -12); //-1 full octave on both oscillators
                 }
                 else{
-                  Func_FPitch(-1); //fine pitch
+                  Func_Octave(0, -12); //-1 full octave on oscillator B
+                  //Func_FPitch(-1); //fine pitch (disabled but coded!!)
                 }
               break;
               case 1://ENCODER #2
@@ -290,10 +292,16 @@ void CV_Read() {
     //CV_V[a] = (float) CV_data[a]/4095 * 10.11;//0-10V is the IDEAL hardware range
     //freq_Voct[a] = (float) pow(2, CV_V[a]);
     note_float[a] = (float) CV_data[a]*(NOTES_DIM - pitch_corr[a])/4095;
-    //note_rnd[a] = round(data_raw[a]);
-    note_rnd[a] = trunc(note_float[a]); //works better than "round"
-    freq_Voct[a] = NOTE_FREQ[note_rnd[a]+12*iOct[a]];
+    //note_trnc[a] = round(data_raw[a]);
+    note_trnc[a] = trunc(note_float[a]); //works better than "round"
+    //freq_Voct[a] = NOTE_FREQ[note_trnc[a]+12*iOct[a]];
   }
+  //VOICE 1
+  freq_Voct[0] = NOTE_FREQ[note_trnc[0]+iOct[0]]; //OSC 0
+  freq_Voct[1] = NOTE_FREQ[note_trnc[0]+iOct[1]];// OSC 1
+  //VOICE 2
+  freq_Voct[2] = NOTE_FREQ[note_trnc[1]+iOct[2]]; //OSC 0
+  freq_Voct[3] = NOTE_FREQ[note_trnc[1]+iOct[3]];// OSC 1
   //Serial.println(pitch_corr[1]);
   //Serial.println(" ");
 }
@@ -320,13 +328,19 @@ void Func_WT_Reset(){
 
 void Freq_Update(){
   //voice #1
+    //OSC0
   freq_TOT[0] = freq_Voct[0] + freq_Voct[0]/1000*iFP[0]; //CV frequency + fine pitch
   aOsc0.setFreq(freq_TOT[0]);
-  aOsc1.setFreq(freq_TOT[0] + freq_Voct[0]/1000*detn_fctr[0]);//CV frequency + fine pitch + relative detune
+    //OSC1
+  freq_TOT[1] = freq_Voct[1] + freq_Voct[1]/1000*iFP[0]; //CV frequency + fine pitch
+  aOsc1.setFreq(freq_TOT[1] + freq_Voct[1]/1000*detn_fctr[0]);//CV frequency + fine pitch + relative detune
   //voice #2
-  freq_TOT[1] = freq_Voct[1] + freq_Voct[1]/1000*iFP[1]; //CV frequency + fine pitch
-  aOsc2.setFreq(freq_TOT[1]);
-  aOsc3.setFreq(freq_TOT[1] + freq_Voct[1]/1000*detn_fctr[1]);//CV frequency + fine pitch + relative detune
+    //OSC2
+  freq_TOT[2] = freq_Voct[2] + freq_Voct[2]/1000*iFP[1]; //CV frequency + fine pitch
+  aOsc2.setFreq(freq_TOT[2]);
+    //OSC3
+  freq_TOT[3] = freq_Voct[3] + freq_Voct[3]/1000*iFP[1]; //CV frequency + fine pitch
+  aOsc3.setFreq(freq_TOT[3] + freq_Voct[3]/1000*detn_fctr[1]);//CV frequency + fine pitch + relative detune
 }
 
 void Func_LEDs(){
@@ -389,21 +403,24 @@ void Func_RelGain (float gn_a, float gn_b){
   //this is updated automatically in updateAudio()
 }
 
-void Func_Octave(float oct_f){
+void Func_Octave(int oct_oscA, int oct_oscB){
   if(currVoice<2){//single voice
-    iOct[currVoice] = iOct[currVoice] + oct_f;
+    iOct[2*currVoice] = iOct[2*currVoice] + oct_oscA;     //current voice, oscilator A
+    iOct[2*currVoice+1] = iOct[2*currVoice+1] + oct_oscB; //current voice, oscilator B
   }
   else{//both voices the same value
-    iOct[0] = iOct[0] + oct_f;
-    iOct[1] = iOct[0];
+    iOct[0] = iOct[0] + oct_oscA; //voice 1, osc A
+    iOct[1] = iOct[1] + oct_oscB; //voice 1, osc B
+    iOct[2] = iOct[0];            //voice 2, osc A
+    iOct[3] = iOct[1];            //voice 2, osc B
   }
   //overflow
-  for (int a = 0; a < VOICES; a++){
-    if(iOct[a] > 2){ //MAX OCTAVES UP
-      iOct[a] = 2;
+  for (int a = 0; a < OSC_NUM; a++){
+    if(iOct[a] > 24){ //MAX OCTAVES UP (2 OCTAVES)
+      iOct[a] = 24;
     }
-    else if (iOct[a] < -2){ //MIN OCTAVES DOWN
-      iOct[a] = -2;
+    else if (iOct[a] < -24){ //MIN OCTAVES DOWN (- 2 OCTAVES)
+      iOct[a] = -24;
     }
   }
 }
