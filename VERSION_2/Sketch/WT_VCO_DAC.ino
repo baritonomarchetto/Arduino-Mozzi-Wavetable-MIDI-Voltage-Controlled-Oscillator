@@ -44,7 +44,7 @@
 // 1 voice 2 out
 const int rotary_pin[2*ROT_ENC] = {12, 13, 21, 20, 10, 11, 9, 22}; //ROTARY ENCODERS, A, B pins
 const int CV_pin[VOICES] = {27, 28};        //Control Voltages (analog inputs, A1 and A2)
-const int trim_pin = 26;                    //buit-in trimmer (A0)
+//const int trim_pin = 26;                  //buit-in trimmer (A0) only present in my PWM-only prototype
 const int btn_pin[BTNS] = {15, 18, 14, 19}; //push buttons
 const int LED_pin[LEDS] = {17, 16};         //LEDs
 const int rxMIDIPin = 7;
@@ -125,8 +125,11 @@ void setup(){
   WT_Update(0, waveIndex[0]); //voice, start index
   WT_Update(1, waveIndex[1]); //voice, start index
 
-  pitch_corr[0] = 3.50; //pitch correction factor for voice #1 (empirical). This smooth out the difference betwen hardware input limits and note chart extension, but also ideal vs real 
-  pitch_corr[1] = 3.50; //pitch correction factor for voice #2 (empirical).
+  //You can live-tune correction factors for both voices by uncommenting the line "#define CALIBRATION" and uploading the sketch.
+  //In calibration mode, pot 1 (upper left) modify voice 1; pot 2 modify voice 2.
+  //Once correction factors are defined, write the values down here and upload the updated sketch
+  pitch_corr[0] = 2.30; //pitch correction factor for voice #1 (empirical). This smooth out the difference betwen hardware input limits and note chart extension, but also ideal vs real 
+  pitch_corr[1] = 2.10; //pitch correction factor for voice #2 (empirical).
   startMozzi();
 
   //MIDI functions (NOT IMPLEMENTED!)
@@ -138,7 +141,7 @@ void setup(){
   //MIDI.begin(MIDI_CHANNEL_OMNI); //start MIDI and listen to ALL MIDI channels
 
   #ifdef CALIBRATION
-    Serial.begin(115200);
+    Serial.begin(9600);
   #endif
 }
 
@@ -278,8 +281,8 @@ void Btn_Read(){
 
 void Func_Calib(int vc, float inc){
   pitch_corr[vc] = pitch_corr[vc] + inc;
-  Serial.print("Pitch correction factor for channel ");
-  Serial.print(vc);
+  Serial.print("Pitch correction factor for voice ");
+  Serial.print(vc+1);
   Serial.print(" ");
   Serial.println(pitch_corr[vc]);
 }
