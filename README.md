@@ -147,7 +147,7 @@ It took little time to have a sketch ready (many thanks to Tom Combriat for his 
 
 No brainer: I implemented it permanently on Gerber! In particular, I drawn a new main board, the face plate and front board being left unchanged.
 
-Unfortunately I have not the new hardware manufactured, so pictures in this Instructables show the PWM version. The new version with DAC is the one shared on this repository. It's untested (again, I don't have it on my hands yet, only tested with a DAC soldered on my prototype through flying wires) so use it at your own risk.
+The new version with DAC is the one shared on this repository.
 
 # Acknowledgments
 Many thanks to the nice girls and guys at [JLCPCB](https://jlcpcb.com/?from=IAT) for sponsoring the manufacturing of PCBs for this module. Without their contribution this project would have never seen the light.
